@@ -13,17 +13,17 @@ var baseUrl = url.URL{
 	Path:   "/solar_api/v1/",
 }
 
-func New() *Client {
+func New() *client {
 	c := &http.Client{Timeout: 2 * time.Second}
-	return &Client{
+	return &client{
 		httpClient: c,
 	}
 }
 
-type Client struct {
+type client struct {
 	httpClient *http.Client
 }
 
-type Response[T any] struct {
+type response[T any] struct {
 	Body T
 }

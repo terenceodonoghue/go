@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func (c *Client) GetDevices(ac chan<- []Device) error {
+func (c *client) GetDevices(ac chan<- []Device) error {
 	rel := &url.URL{Path: "users/me/pods"}
 	url := baseUrl.ResolveReference(rel)
 	req, err := http.NewRequest("GET", url.String(), nil)
@@ -28,7 +28,7 @@ func (c *Client) GetDevices(ac chan<- []Device) error {
 	}
 
 	defer res.Body.Close()
-	var response Response[Device]
+	var response response[Device]
 	err = json.NewDecoder(res.Body).Decode(&response)
 	ac <- response.Result
 	return err

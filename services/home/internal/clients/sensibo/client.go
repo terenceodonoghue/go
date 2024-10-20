@@ -13,20 +13,20 @@ var baseUrl = url.URL{
 	Path:   "/api/v2/",
 }
 
-func New(apiKey string) *Client {
+func New(apiKey string) *client {
 	c := &http.Client{Timeout: 10 * time.Second}
-	return &Client{
+	return &client{
 		apiKey:     apiKey,
 		httpClient: c,
 	}
 }
 
-type Client struct {
+type client struct {
 	apiKey     string
 	httpClient *http.Client
 }
 
-type Response[T any] struct {
+type response[T any] struct {
 	Status string
 	Result []T
 }

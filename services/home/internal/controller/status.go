@@ -15,28 +15,27 @@ func GetStatus(ctx context.Context) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		errs, ctx := errgroup.WithContext(ctx)
 
+		f := fronius.New()
+		s := sensibo.New(os.Getenv("SENSIBO_API_KEY"))
+
 		ac := make(chan []sensibo.Device, 1)
 		pv := make(chan fronius.Inverter, 1)
 
 		errs.Go(func() error {
-			defer close(ac)
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			default:
-				s := sensibo.New(os.Getenv("SENSIBO_API_KEY"))
 				return s.GetDevices(ac)
 			}
 		})
 
 		errs.Go(func() error {
-			defer close(pv)
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			default:
-				f := fronius.New()
-				return f.GetRealtimeData(pv)
+				return f.GetInverterRealtimeData(pv)
 			}
 		})
 

@@ -6,16 +6,17 @@ import (
 	"net/url"
 )
 
-func (c *Client) GetRealtimeData(pv chan<- Inverter) error {
+func (c *client) GetInverterRealtimeData(ch chan<- Inverter) error {
+	defer close(ch)
 	rel := &url.URL{Path: "GetInverterRealtimeData.cgi"}
 	url := baseUrl.ResolveReference(rel)
-	req, err := http.NewRequest("GET", url.String(), nil)
+
+	req, err := http.NewRequest(http.MethodGet, url.String(), nil)
 	if err != nil {
 		return err
 	}
 
 	q := req.URL.Query()
-
 	q.Add("Scope", "System")
 	req.URL.RawQuery = q.Encode()
 
@@ -25,18 +26,27 @@ func (c *Client) GetRealtimeData(pv chan<- Inverter) error {
 	}
 
 	defer res.Body.Close()
-	var response Response[Inverter]
+	var response response[Inverter]
 	err = json.NewDecoder(res.Body).Decode(&response)
-	pv <- response.Body
+	ch <- response.Body
 	return err
+}
+
+type Inverter struct {
+	Data struct {
+		PAC          output
+		DAY_ENERGY   output
+		YEAR_ENERGY  output
+		TOTAL_ENERGY output
+	}
 }
 
 func (i Inverter) MarshalJSON() ([]byte, error) {
 	inverter := struct {
-		Power        Output `json:"power"`
-		DailyEnergy  Output `json:"daily_energy"`
-		AnnualEnergy Output `json:"annual_energy"`
-		TotalEnergy  Output `json:"total_energy"`
+		Power        output `json:"power"`
+		DailyEnergy  output `json:"daily_energy"`
+		AnnualEnergy output `json:"annual_energy"`
+		TotalEnergy  output `json:"total_energy"`
 	}{
 		Power:        i.Data.PAC,
 		DailyEnergy:  i.Data.DAY_ENERGY,
@@ -47,7 +57,12 @@ func (i Inverter) MarshalJSON() ([]byte, error) {
 	return json.Marshal(inverter)
 }
 
-func (o Output) MarshalJSON() ([]byte, error) {
+type output struct {
+	Unit   string
+	Values values
+}
+
+func (o output) MarshalJSON() ([]byte, error) {
 	output := struct {
 		Value int    `json:"value"`
 		Unit  string `json:"unit"`
@@ -59,7 +74,9 @@ func (o Output) MarshalJSON() ([]byte, error) {
 	return json.Marshal(output)
 }
 
-func (v Values) Sum() int {
+type values map[string]int
+
+func (v values) Sum() int {
 	sum := 0
 	for _, t := range v {
 		sum += t
@@ -67,19 +84,3 @@ func (v Values) Sum() int {
 
 	return sum
 }
-
-type Inverter struct {
-	Data struct {
-		PAC          Output
-		DAY_ENERGY   Output
-		YEAR_ENERGY  Output
-		TOTAL_ENERGY Output
-	}
-}
-
-type Output struct {
-	Unit   string
-	Values Values
-}
-
-type Values map[string]int
