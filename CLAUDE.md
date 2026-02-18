@@ -4,12 +4,11 @@
 
 A Go workspace with services in `services/*`. Module paths use `go.local/` as a non-resolvable TLD to prevent public publishing.
 
-Early-stage; no services yet.
-
 ## Commands
 
 - Build a service: `go build ./services/<name>/...`
 - Run tests: `go test ./services/<name>/...`
+- Regenerate sqlc: `cd services/<name> && sqlc generate` (output goes to `internal/db/`, do not edit generated files)
 
 ## Conventions
 
