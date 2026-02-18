@@ -5,6 +5,7 @@
 *.dylib
 *.out
 *.test
+.env
 go.work*
 
 ### macOS ###

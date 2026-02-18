@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Auth Test</title>
+  <style>
+    body { font-family: monospace; max-width: 600px; margin: 40px auto; }
+    input, button { font-family: monospace; font-size: 14px; padding: 6px; }
+    button { cursor: pointer; }
+    pre { background: #f0f0f0; padding: 10px; overflow-x: auto; white-space: pre-wrap; }
+    hr { margin: 30px 0; }
+    .log { color: #666; }
+    .error { color: red; }
+    .success { color: green; }
+  </style>
+</head>
+<body>
+  <h2>Register</h2>
+  <div>
+    <input id="reg-email" type="email" placeholder="email" />
+    <button onclick="registerBegin()">Send Code</button>
+  </div>
+  <br />
+  <div>
+    <input id="reg-code" type="text" placeholder="verification code" />
+    <button onclick="registerVerify()">Verify & Create Passkey</button>
+  </div>
+  <div id="reg-log"></div>
+
+  <hr />
+
+  <h2>Login</h2>
+  <div>
+    <button onclick="loginBegin()">Sign in with Passkey</button>
+  </div>
+  <div id="login-log"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
