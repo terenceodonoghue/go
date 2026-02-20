@@ -26,10 +26,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - uses: docker/setup-qemu-action@v3
+
       - uses: docker/setup-buildx-action@v3
 
       - uses: docker/build-push-action@v6
         with:
           context: services/auth
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/terenceodonoghue/auth:latest
