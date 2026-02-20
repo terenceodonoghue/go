@@ -36,4 +36,4 @@ jobs:
           context: services/auth
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/terenceodonoghue/auth:latest
+          tags: ghcr.io/terenceodonoghue/auth-api:latest
