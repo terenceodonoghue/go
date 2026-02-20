@@ -10,6 +10,7 @@ on:
       - services/auth/Dockerfile
       - services/auth/sql/**
       - services/auth/sqlc.yaml
+      - .github/workflows/auth.yml
 
 jobs:
   publish:
