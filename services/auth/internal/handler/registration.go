@@ -21,6 +21,7 @@ type Handler struct {
 	Store                *store.RedisStore
 	SecureCookie         bool
 	LogVerificationCodes bool
+	LoginURL             string
 }
 
 /*
@@ -131,7 +132,7 @@ func (h *Handler) VerifyAndBeginPasskey(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := h.Store.SaveSession(r.Context(), sessionID, session); err != nil {
+	if err := h.Store.SaveWebAuthnSession(r.Context(), sessionID, session); err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
@@ -158,13 +159,13 @@ func (h *Handler) FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.Store.GetSession(r.Context(), cookie.Value)
+	session, err := h.Store.GetWebAuthnSession(r.Context(), cookie.Value)
 	if err != nil {
 		http.Error(w, "session expired or invalid", http.StatusBadRequest)
 		return
 	}
 
-	h.Store.DeleteSession(r.Context(), cookie.Value)
+	h.Store.DeleteWebAuthnSession(r.Context(), cookie.Value)
 
 	user, err := h.Queries.GetUserByWebAuthnID(r.Context(), session.UserID)
 	if err != nil {
@@ -206,6 +207,11 @@ func (h *Handler) FinishRegistration(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		http.Error(w, "failed to save credential", http.StatusInternalServerError)
+		return
+	}
+
+	if err := h.createAuthSession(w, r, user); err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 

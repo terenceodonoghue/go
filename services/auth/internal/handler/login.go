@@ -23,7 +23,7 @@ func (h *Handler) BeginLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.Store.SaveSession(r.Context(), sessionID, session); err != nil {
+	if err := h.Store.SaveWebAuthnSession(r.Context(), sessionID, session); err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
@@ -50,19 +50,23 @@ func (h *Handler) FinishLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.Store.GetSession(r.Context(), cookie.Value)
+	session, err := h.Store.GetWebAuthnSession(r.Context(), cookie.Value)
 	if err != nil {
 		http.Error(w, "session expired or invalid", http.StatusBadRequest)
 		return
 	}
 
-	h.Store.DeleteSession(r.Context(), cookie.Value)
+	h.Store.DeleteWebAuthnSession(r.Context(), cookie.Value)
+
+	var authenticatedUser db.User
 
 	discoverableUserHandler := func(rawID, userHandle []byte) (webauthn.User, error) {
 		dbUser, err := h.Queries.GetUserByWebAuthnID(r.Context(), userHandle)
 		if err != nil {
 			return nil, err
 		}
+
+		authenticatedUser = dbUser
 
 		creds, err := h.Queries.GetCredentialsByUserID(r.Context(), dbUser.ID)
 		if err != nil {
@@ -86,6 +90,11 @@ func (h *Handler) FinishLogin(w http.ResponseWriter, r *http.Request) {
 		SignCount:       int64(credential.Authenticator.SignCount),
 		FlagBackupState: credential.Flags.BackupState,
 	}); err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	if err := h.createAuthSession(w, r, authenticatedUser); err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
