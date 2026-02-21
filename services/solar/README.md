@@ -1,6 +1,6 @@
 # solar
 
-Background service that polls a Fronius Primo 8.2-1 solar inverter every 5 seconds and writes metrics to InfluxDB 2.x for display in Grafana.
+Background service that polls a Fronius solar inverter every 5 seconds and writes metrics to InfluxDB 2.x.
 
 ## Setup
 
