@@ -10,30 +10,31 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
-	"go.local/services/auth/internal/db"
-	"go.local/services/auth/internal/handler"
-	"go.local/services/auth/internal/store"
+	"go.local/pkg/env"
+	"go.local/services/auth-api/internal/db"
+	"go.local/services/auth-api/internal/handler"
+	"go.local/services/auth-api/internal/store"
 )
 
 func main() {
 	ctx := context.Background()
 
-	dbURL := requiredEnv("DATABASE_URL")
+	dbURL := env.Required("DATABASE_URL")
 	pool, err := pgxpool.New(ctx, dbURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer pool.Close()
 
-	redisAddr := requiredEnv("REDIS_ADDR")
+	redisAddr := env.Required("REDIS_ADDR")
 	rdb := redis.NewClient(&redis.Options{Addr: redisAddr})
 	if err := rdb.Ping(ctx).Err(); err != nil {
 		log.Fatalf("Failed to connect to Redis: %v", err)
 	}
 	defer rdb.Close()
 
-	rpID := requiredEnv("RP_ID")
-	rpOrigin := requiredEnv("RP_ORIGIN")
+	rpID := env.Required("RP_ID")
+	rpOrigin := env.Required("RP_ORIGIN")
 	wconfig := &webauthn.Config{
 		RPID:          rpID,
 		RPDisplayName: "Auth",
@@ -87,12 +88,4 @@ func main() {
 	if err := http.ListenAndServe(addr, handler.CORS([]string{rpOrigin}, mux)); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
-}
-
-func requiredEnv(key string) string {
-	v := os.Getenv(key)
-	if v == "" {
-		log.Fatalf("%s is required", key)
-	}
-	return v
 }

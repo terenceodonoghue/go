@@ -4,12 +4,12 @@ on:
   push:
     branches: [main]
     paths:
-      - services/auth/**/*.go
-      - services/auth/go.mod
-      - services/auth/go.sum
-      - services/auth/Dockerfile
-      - services/auth/sql/**
-      - services/auth/sqlc.yaml
+      - services/auth-api/**/*.go
+      - services/auth-api/go.mod
+      - services/auth-api/go.sum
+      - services/auth-api/Dockerfile
+      - services/auth-api/sql/**
+      - services/auth-api/sqlc.yaml
       - .github/workflows/auth.yml
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: services/auth
+          context: services/auth-api
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/terenceodonoghue/auth-api:latest

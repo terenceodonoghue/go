@@ -1,4 +1,4 @@
-module go.local/services/auth
+module go.local/services/auth-api
 
 go 1.26.0
 

@@ -12,7 +12,8 @@ import (
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
-	"go.local/services/solar/internal/fronius"
+	"go.local/pkg/env"
+	"go.local/services/solar-svc/internal/fronius"
 )
 
 const (
@@ -24,16 +25,16 @@ const (
 )
 
 func main() {
-	inverterURL := requiredEnv("INVERTER_URL")
-	capacityW, err := strconv.ParseFloat(requiredEnv("INVERTER_CAPACITY_W"), 64)
+	inverterURL := env.Required("INVERTER_URL")
+	capacityW, err := strconv.ParseFloat(env.Required("INVERTER_CAPACITY_W"), 64)
 	if err != nil {
 		log.Fatalf("Invalid INVERTER_CAPACITY_W: %v", err)
 	}
 
-	influxURL    := requiredEnv("INFLUX_URL")
-	influxToken  := requiredEnv("INFLUX_TOKEN")
-	influxOrg    := requiredEnv("INFLUX_ORG")
-	influxBucket := requiredEnv("INFLUX_BUCKET")
+	influxURL    := env.Required("INFLUX_URL")
+	influxToken  := env.Required("INFLUX_TOKEN")
+	influxOrg    := env.Required("INFLUX_ORG")
+	influxBucket := env.Required("INFLUX_BUCKET")
 
 	froniusClient := fronius.New(inverterURL, &http.Client{Timeout: 4 * time.Second})
 
@@ -154,12 +155,4 @@ func poll(ctx context.Context, client *fronius.Client, writeAPI api.WriteAPIBloc
 	)
 
 	return writeAPI.WritePoint(ctx, p)
-}
-
-func requiredEnv(key string) string {
-	v := os.Getenv(key)
-	if v == "" {
-		log.Fatalf("%s is required", key)
-	}
-	return v
 }

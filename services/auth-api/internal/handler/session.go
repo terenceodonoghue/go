@@ -6,8 +6,8 @@ import (
 	"net/url"
 
 	"github.com/google/uuid"
-	"go.local/services/auth/internal/db"
-	"go.local/services/auth/internal/store"
+	"go.local/services/auth-api/internal/db"
+	"go.local/services/auth-api/internal/store"
 )
 
 func (h *Handler) createAuthSession(w http.ResponseWriter, r *http.Request, user db.User) error {

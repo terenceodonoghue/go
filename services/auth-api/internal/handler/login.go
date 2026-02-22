@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/go-webauthn/webauthn/webauthn"
-	"go.local/services/auth/internal/db"
-	"go.local/services/auth/internal/model"
+	"go.local/services/auth-api/internal/db"
+	"go.local/services/auth-api/internal/model"
 )
 
 // BeginLogin starts a discoverable login ceremony (no username required).

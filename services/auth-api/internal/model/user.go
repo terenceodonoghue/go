@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"go.local/services/auth/internal/db"
+	"go.local/services/auth-api/internal/db"
 )
 
 // User wraps a database user and their credentials to implement the webauthn.User interface.

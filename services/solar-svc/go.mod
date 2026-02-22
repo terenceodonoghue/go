@@ -1,4 +1,4 @@
-module go.local/services/solar
+module go.local/services/solar-svc
 
 go 1.26.0
 
