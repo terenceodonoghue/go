@@ -1,4 +1,4 @@
-# Auth
+# auth-api
 
 Passwordless authentication server using [WebAuthn/passkeys](https://webauthn.io/). Supports email verification, passkey registration, and discoverable login.
 

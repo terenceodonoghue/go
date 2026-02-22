@@ -5,10 +5,11 @@ on:
     branches: [main]
     paths:
       - services/solar-svc/**/*.go
-      - services/solar-svc/go.mod
-      - services/solar-svc/go.sum
       - services/solar-svc/Dockerfile
-      - .github/workflows/solar.yml
+      - pkg/**/*.go
+      - go.mod
+      - go.sum
+      - .github/workflows/solar-svc.yml
 
 jobs:
   publish:
@@ -31,7 +32,8 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: services/solar-svc
+          context: .
+          file: services/solar-svc/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/terenceodonoghue/solar-svc:latest

@@ -2,7 +2,7 @@
 
 ## What is this?
 
-A Go workspace with services in `services/*`. Module paths use `go.local/` as a non-resolvable TLD to prevent public publishing.
+A single Go module (`go.local`) with services in `services/*` and shared packages in `pkg/*`. The module path uses `go.local/` as a non-resolvable TLD to prevent public publishing.
 
 ## Commands
 
@@ -13,8 +13,7 @@ A Go workspace with services in `services/*`. Module paths use `go.local/` as a 
 ## Conventions
 
 - Go 1.26+
-- Services live in `services/`, each with its own `go.mod`
-- After adding a service, add it to `go.work` locally (`go.work` is gitignored)
+- Services live in `services/`, shared packages in `pkg/`
 - Commit messages use imperative present tense (e.g., "Add feature", "Fix bug")
 
 ## Code style
