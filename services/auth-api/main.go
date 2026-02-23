@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"log"
 	"net/http"
 	"os"
@@ -16,6 +17,9 @@ import (
 	"go.local/services/auth-api/internal/store"
 )
 
+//go:embed sql/schema.sql
+var schema string
+
 func main() {
 	ctx := context.Background()
 
@@ -25,6 +29,11 @@ func main() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer pool.Close()
+
+	if _, err := pool.Exec(ctx, schema); err != nil {
+		log.Fatalf("Failed to apply database schema: %v", err)
+	}
+	log.Println("Database schema applied")
 
 	redisAddr := env.Required("REDIS_ADDR")
 	rdb := redis.NewClient(&redis.Options{Addr: redisAddr})

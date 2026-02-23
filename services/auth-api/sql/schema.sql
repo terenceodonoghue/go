@@ -1,11 +1,11 @@
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     webauthn_id  BYTEA UNIQUE NOT NULL,                             -- 64 random bytes; opaque user handle sent to the authenticator
     email        TEXT UNIQUE NOT NULL,                              -- used as WebAuthnName and WebAuthnDisplayName
     created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE credentials (
+CREATE TABLE IF NOT EXISTS credentials (
     id                   BYTEA PRIMARY KEY,                          -- credential ID assigned by the authenticator
     user_id              UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     public_key           BYTEA NOT NULL,                             -- verifies signatures during login
@@ -17,4 +17,4 @@ CREATE TABLE credentials (
     created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_credentials_user_id ON credentials(user_id);
+CREATE INDEX IF NOT EXISTS idx_credentials_user_id ON credentials(user_id);
