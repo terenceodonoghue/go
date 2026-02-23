@@ -1,4 +1,4 @@
-name: Solar
+name: Solar Service
 
 on:
   push:
