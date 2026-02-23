@@ -21,7 +21,6 @@ type Handler struct {
 	Store                *store.RedisStore
 	SecureCookie         bool
 	LogVerificationCodes bool
-	LoginURL             string
 }
 
 /*

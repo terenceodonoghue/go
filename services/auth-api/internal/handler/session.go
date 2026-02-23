@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/google/uuid"
 	"go.local/services/auth-api/internal/db"
@@ -73,24 +71,6 @@ func (h *Handler) VerifySession(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) handleUnauthorized(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Query().Get("mode") == "web" && h.LoginURL != "" {
-		host := r.Header.Get("X-Forwarded-Host")
-		uri := r.Header.Get("X-Forwarded-Uri")
-		redirectURI := fmt.Sprintf("https://%s%s", host, uri)
-
-		target, err := url.Parse(h.LoginURL)
-		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		q := target.Query()
-		q.Set("redirect_uri", redirectURI)
-		target.RawQuery = q.Encode()
-
-		http.Redirect(w, r, target.String(), http.StatusFound)
-		return
-	}
-
 	w.WriteHeader(http.StatusUnauthorized)
 }
 

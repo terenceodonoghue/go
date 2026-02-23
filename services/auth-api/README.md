@@ -23,7 +23,6 @@ REDIS_ADDR=localhost:6379
 RP_ID=localhost
 RP_ORIGIN=http://localhost:3000
 LOG_VERIFICATION_CODES=true
-LOGIN_URL=http://localhost:3000
 ```
 
 Run the server:
@@ -52,7 +51,6 @@ All environment variables are required unless noted otherwise.
 | `RP_ORIGIN` | Origin the browser sends during WebAuthn ceremonies | `https://example.com` |
 | `ADDR` | Listen address (optional, defaults to `:8081`) | `:8080` |
 | `LOG_VERIFICATION_CODES` | Log codes to console (optional, defaults to `false`) | `true` |
-| `LOGIN_URL` | Login page URL for web redirects (optional) | `https://login.example.com` |
 
 ## API
 
@@ -81,7 +79,7 @@ Successful registration and login set an `auth_session` cookie with a 24-hour sl
 |---|---|---|
 | GET | `/api/verify` | Validate the session cookie |
 
-Returns `200` with `Remote-User` and `Remote-Email` headers if the session is valid. If the session is invalid and `?mode=web` is present with `LOGIN_URL` configured, returns `302` to `${LOGIN_URL}?redirect_uri=https://${X-Forwarded-Host}${X-Forwarded-Uri}`. Otherwise returns `401`.
+Returns `200` with `Remote-User` and `Remote-Email` headers if the session is valid. Returns `401` if the session is invalid. Designed for use with Caddy's `forward_auth` directive.
 
 ### Logout
 
@@ -107,7 +105,6 @@ docker run -p 8081:8081 \
   -e REDIS_ADDR=host:6379 \
   -e RP_ID=example.com \
   -e RP_ORIGIN=https://example.com \
-  -e LOGIN_URL=https://login.example.com \
   auth
 ```
 
@@ -115,4 +112,4 @@ docker run -p 8081:8081 \
 
 - WebAuthn requires HTTPS in production. `localhost` is the only exception for development.
 - Passkeys are scoped to `RP_ID`. Changing it after users have registered will invalidate their credentials.
-- The schema is applied automatically on first `docker compose up` via the PostgreSQL init script.
+- The schema is embedded in the binary and applied automatically on startup.

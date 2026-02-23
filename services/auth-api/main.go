@@ -55,18 +55,12 @@ func main() {
 		log.Fatalf("Failed to initialise WebAuthn: %v", err)
 	}
 
-	loginURL := os.Getenv("LOGIN_URL")
-	if loginURL == "" {
-		log.Println("WARNING: LOGIN_URL is not set; /api/verify will not redirect unauthenticated web requests")
-	}
-
 	h := &handler.Handler{
 		WebAuthn:             webAuthn,
 		Queries:              db.New(pool),
 		Store:                store.NewRedisStore(rdb),
 		SecureCookie:         strings.HasPrefix(rpOrigin, "https://"),
 		LogVerificationCodes: os.Getenv("LOG_VERIFICATION_CODES") == "true",
-		LoginURL:             loginURL,
 	}
 
 	mux := http.NewServeMux()
@@ -87,7 +81,6 @@ func main() {
 	log.Printf("  ADDR                   = %s", addr)
 	log.Printf("  DATABASE_URL           = %s", dbURL)
 	log.Printf("  LOG_VERIFICATION_CODES = %v", h.LogVerificationCodes)
-	log.Printf("  LOGIN_URL              = %s", loginURL)
 	log.Printf("  REDIS_ADDR             = %s", redisAddr)
 	log.Printf("  RP_ID                  = %s", rpID)
 	log.Printf("  RP_ORIGIN              = %s", rpOrigin)
