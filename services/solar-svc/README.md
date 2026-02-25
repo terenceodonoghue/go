@@ -93,7 +93,7 @@ Create the following Tasks in the InfluxDB UI (**Tasks → Create Task**). Each 
 #### Task 1: Raw → hourly (runs every hour)
 
 ```flux
-option task = {name: "downsample-hourly", every: 1h, offset: 5m}
+option task = {name: "solar-downsample-hourly", every: 1h, offset: 5m}
 
 from(bucket: "solar-raw")
   |> range(start: -task.every)
@@ -125,7 +125,7 @@ from(bucket: "solar-raw")
 #### Task 2: Hourly → daily (runs every day)
 
 ```flux
-option task = {name: "downsample-daily", every: 1d, offset: 30m}
+option task = {name: "solar-downsample-daily", every: 1d, offset: 30m}
 
 from(bucket: "solar-hourly")
   |> range(start: -task.every)
