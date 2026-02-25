@@ -93,7 +93,7 @@ Create the following Tasks in the InfluxDB UI (**Tasks → Create Task**). Each 
 #### Task 1: Raw → hourly (runs every hour)
 
 ```flux
-option task = {name: "solar-downsample-hourly", every: 1h, offset: 5m}
+option task = {name: "downsample-hourly", every: 1h, offset: 5m}
 
 from(bucket: "solar-raw")
   |> range(start: -task.every)
@@ -116,6 +116,7 @@ from(bucket: "solar-raw")
   |> filter(fn: (r) =>
       r._field == "day_energy" or
       r._field == "year_energy" or
+      r._field == "month_energy" or
       r._field == "total_energy")
   |> aggregateWindow(every: 1h, fn: last, createEmpty: false)
   |> to(bucket: "solar-hourly", org: "homelab")
@@ -124,7 +125,7 @@ from(bucket: "solar-raw")
 #### Task 2: Hourly → daily (runs every day)
 
 ```flux
-option task = {name: "solar-downsample-daily", every: 1d, offset: 10m}
+option task = {name: "downsample-daily", every: 1d, offset: 30m}
 
 from(bucket: "solar-hourly")
   |> range(start: -task.every)
@@ -147,6 +148,7 @@ from(bucket: "solar-hourly")
   |> filter(fn: (r) =>
       r._field == "day_energy" or
       r._field == "year_energy" or
+      r._field == "month_energy" or
       r._field == "total_energy")
   |> aggregateWindow(every: 1d, fn: last, createEmpty: false)
   |> to(bucket: "solar-daily", org: "homelab")
@@ -175,6 +177,7 @@ from(bucket: "solar-hourly")
 | `udc` | V | DC voltage from panels |
 | `day_energy` | Wh | Energy produced today (resets at midnight) |
 | `year_energy` | Wh | Energy produced this year |
+| `month_energy` | Wh | Energy produced this month (from archive API, refreshed every 24 h) |
 | `total_energy` | Wh | Lifetime energy produced |
 | `utilisation` | % | Output as a percentage of rated capacity |
 
@@ -196,7 +199,7 @@ GET http://<INVERTER_URL>/solar_api/v1/GetInverterRealtimeData.cgi
 The inverter shuts down overnight. Two distinct behaviours handle this:
 
 - **Inverter responds but isn't producing** (`StatusCode != 7`, e.g. during startup or shutdown): the poll is a no-op — no write, no error, polling continues at the normal interval.
-- **Inverter unreachable** (network error or timeout): exponential backoff doubles the wait on each consecutive failure, capped at `POLL_BACKOFF_MAX` (default 5 minutes). Normal polling resumes — and a recovery message is logged — on the first successful fetch.
+- **Inverter unreachable** (network error or timeout): exponential backoff doubles the wait on each consecutive failure, capped at `POLL_BACKOFF_MAX` (default 10 minutes). Normal polling resumes — and a recovery message is logged — on the first successful fetch.
 
 ### Writes
 
