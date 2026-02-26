@@ -19,25 +19,8 @@ func NewRedisStore(client *redis.Client) *RedisStore {
 }
 
 /*
-Email verification codes confirm ownership of an email address during registration.
-Codes expire after 10 minutes.
-*/
-
-func (s *RedisStore) SaveVerification(ctx context.Context, email, code string) error {
-	return s.client.Set(ctx, verifyKey(email), code, 10*time.Minute).Err()
-}
-
-func (s *RedisStore) GetVerification(ctx context.Context, email string) (string, error) {
-	return s.client.Get(ctx, verifyKey(email)).Result()
-}
-
-func (s *RedisStore) DeleteVerification(ctx context.Context, email string) error {
-	return s.client.Del(ctx, verifyKey(email)).Err()
-}
-
-/*
 WebAuthn ceremony sessions hold challenge data between the begin and finish steps
-of registration or login. Sessions expire after 5 minutes.
+of a login ceremony. Sessions expire after 5 minutes.
 */
 
 func (s *RedisStore) SaveWebAuthnSession(ctx context.Context, sessionID string, data *webauthn.SessionData) error {
@@ -65,13 +48,46 @@ func (s *RedisStore) DeleteWebAuthnSession(ctx context.Context, sessionID string
 }
 
 /*
+Registration sessions carry the display name and WebAuthn ceremony data between
+the begin and finish steps of a registration. Sessions expire after 5 minutes.
+*/
+
+type RegistrationSession struct {
+	DisplayName string               `json:"display_name"`
+	WebAuthn    *webauthn.SessionData `json:"webauthn"`
+}
+
+func (s *RedisStore) SaveRegistrationSession(ctx context.Context, sessionID string, data *RegistrationSession) error {
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return s.client.Set(ctx, registrationKey(sessionID), b, 5*time.Minute).Err()
+}
+
+func (s *RedisStore) GetRegistrationSession(ctx context.Context, sessionID string) (*RegistrationSession, error) {
+	b, err := s.client.Get(ctx, registrationKey(sessionID)).Bytes()
+	if err != nil {
+		return nil, err
+	}
+	var data RegistrationSession
+	if err := json.Unmarshal(b, &data); err != nil {
+		return nil, err
+	}
+	return &data, nil
+}
+
+func (s *RedisStore) DeleteRegistrationSession(ctx context.Context, sessionID string) error {
+	return s.client.Del(ctx, registrationKey(sessionID)).Err()
+}
+
+/*
 Auth sessions persist user identity after a successful registration or login.
 Sessions have a 24-hour sliding TTL that refreshes on each access.
 */
 
 type AuthSession struct {
-	UserID string `json:"user_id"`
-	Email  string `json:"email"`
+	DisplayName string `json:"display_name"`
 }
 
 func (s *RedisStore) SaveAuthSession(ctx context.Context, token string, session *AuthSession) error {
@@ -104,8 +120,8 @@ func authSessionKey(token string) string {
 	return fmt.Sprintf("auth:session:%s", token)
 }
 
-func verifyKey(email string) string {
-	return fmt.Sprintf("verify:%s", email)
+func registrationKey(sessionID string) string {
+	return fmt.Sprintf("registration:session:%s", sessionID)
 }
 
 func sessionKey(sessionID string) string {

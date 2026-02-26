@@ -13,15 +13,17 @@ import (
 
 const createCredential = `-- name: CreateCredential :one
 INSERT INTO credentials (
-    id, user_id, public_key, transport,
-    sign_count, flag_backup_eligible, flag_backup_state, aaguid
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, user_id, public_key, transport, sign_count, flag_backup_eligible, flag_backup_state, aaguid, created_at
+    id, user_handle, display_name, public_key, transport,
+    sign_count, flag_backup_eligible, flag_backup_state, aaguid,
+    last_used_at
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+RETURNING id, user_handle, display_name, public_key, transport, sign_count, flag_backup_eligible, flag_backup_state, aaguid, last_used_at, created_at
 `
 
 type CreateCredentialParams struct {
 	ID                 []byte      `json:"id"`
-	UserID             pgtype.UUID `json:"user_id"`
+	UserHandle         []byte      `json:"user_handle"`
+	DisplayName        pgtype.Text `json:"display_name"`
 	PublicKey          []byte      `json:"public_key"`
 	Transport          []string    `json:"transport"`
 	SignCount          int64       `json:"sign_count"`
@@ -33,7 +35,8 @@ type CreateCredentialParams struct {
 func (q *Queries) CreateCredential(ctx context.Context, arg CreateCredentialParams) (Credential, error) {
 	row := q.db.QueryRow(ctx, createCredential,
 		arg.ID,
-		arg.UserID,
+		arg.UserHandle,
+		arg.DisplayName,
 		arg.PublicKey,
 		arg.Transport,
 		arg.SignCount,
@@ -44,65 +47,56 @@ func (q *Queries) CreateCredential(ctx context.Context, arg CreateCredentialPara
 	var i Credential
 	err := row.Scan(
 		&i.ID,
-		&i.UserID,
+		&i.UserHandle,
+		&i.DisplayName,
 		&i.PublicKey,
 		&i.Transport,
 		&i.SignCount,
 		&i.FlagBackupEligible,
 		&i.FlagBackupState,
 		&i.Aaguid,
+		&i.LastUsedAt,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
-const getCredentialsByUserID = `-- name: GetCredentialsByUserID :many
-SELECT id, user_id, public_key, transport, sign_count, flag_backup_eligible, flag_backup_state, aaguid, created_at FROM credentials WHERE user_id = $1
+const getCredential = `-- name: GetCredential :one
+SELECT id, user_handle, display_name, public_key, transport, sign_count, flag_backup_eligible, flag_backup_state, aaguid, last_used_at, created_at FROM credentials WHERE user_handle = $1
 `
 
-func (q *Queries) GetCredentialsByUserID(ctx context.Context, userID pgtype.UUID) ([]Credential, error) {
-	rows, err := q.db.Query(ctx, getCredentialsByUserID, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []Credential{}
-	for rows.Next() {
-		var i Credential
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.PublicKey,
-			&i.Transport,
-			&i.SignCount,
-			&i.FlagBackupEligible,
-			&i.FlagBackupState,
-			&i.Aaguid,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) GetCredential(ctx context.Context, userHandle []byte) (Credential, error) {
+	row := q.db.QueryRow(ctx, getCredential, userHandle)
+	var i Credential
+	err := row.Scan(
+		&i.ID,
+		&i.UserHandle,
+		&i.DisplayName,
+		&i.PublicKey,
+		&i.Transport,
+		&i.SignCount,
+		&i.FlagBackupEligible,
+		&i.FlagBackupState,
+		&i.Aaguid,
+		&i.LastUsedAt,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
-const updateCredentialAfterLogin = `-- name: UpdateCredentialAfterLogin :exec
+const updateCredential = `-- name: UpdateCredential :exec
 UPDATE credentials
-SET sign_count = $2, flag_backup_state = $3
+SET sign_count = $2, flag_backup_state = $3, last_used_at = NOW()
 WHERE id = $1
 `
 
-type UpdateCredentialAfterLoginParams struct {
+type UpdateCredentialParams struct {
 	ID              []byte `json:"id"`
 	SignCount       int64  `json:"sign_count"`
 	FlagBackupState bool   `json:"flag_backup_state"`
 }
 
-func (q *Queries) UpdateCredentialAfterLogin(ctx context.Context, arg UpdateCredentialAfterLoginParams) error {
-	_, err := q.db.Exec(ctx, updateCredentialAfterLogin, arg.ID, arg.SignCount, arg.FlagBackupState)
+func (q *Queries) UpdateCredential(ctx context.Context, arg UpdateCredentialParams) error {
+	_, err := q.db.Exec(ctx, updateCredential, arg.ID, arg.SignCount, arg.FlagBackupState)
 	return err
 }

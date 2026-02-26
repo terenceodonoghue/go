@@ -43,11 +43,11 @@ func main() {
 	defer rdb.Close()
 
 	rpID := env.Required("RP_ID")
-	rpOrigin := env.Required("RP_ORIGIN")
+	rpOrigins := strings.Split(env.Required("RP_ORIGINS"), ",")
 	wconfig := &webauthn.Config{
 		RPID:          rpID,
 		RPDisplayName: "Auth",
-		RPOrigins:     []string{rpOrigin},
+		RPOrigins:     rpOrigins,
 	}
 
 	webAuthn, err := webauthn.New(wconfig)
@@ -55,21 +55,21 @@ func main() {
 		log.Fatalf("Failed to initialise WebAuthn: %v", err)
 	}
 
+	rpOrigin := rpOrigins[0]
 	h := &handler.Handler{
-		WebAuthn:             webAuthn,
-		Queries:              db.New(pool),
-		Store:                store.NewRedisStore(rdb),
-		SecureCookie:         strings.HasPrefix(rpOrigin, "https://"),
-		LogVerificationCodes: os.Getenv("LOG_VERIFICATION_CODES") == "true",
+		WebAuthn:     webAuthn,
+		Queries:      db.New(pool),
+		Store:        store.NewRedisStore(rdb),
+		SecureCookie: strings.HasPrefix(rpOrigin, "https://"),
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /api/register/begin", h.BeginRegistration)
-	mux.HandleFunc("POST /api/register/verify", h.VerifyAndBeginPasskey)
+	mux.HandleFunc("POST /api/register/begin", h.BeginPasskeyRegistration)
 	mux.HandleFunc("POST /api/register/finish", h.FinishRegistration)
 	mux.HandleFunc("POST /api/login/begin", h.BeginLogin)
 	mux.HandleFunc("POST /api/login/finish", h.FinishLogin)
 	mux.HandleFunc("GET /api/verify", h.VerifySession)
+	mux.HandleFunc("GET /api/network", h.GetNetworkContext)
 	mux.HandleFunc("POST /api/logout", h.Logout)
 
 	addr := ":8081"
@@ -78,16 +78,15 @@ func main() {
 	}
 
 	log.Println("Configuration:")
-	log.Printf("  ADDR                   = %s", addr)
-	log.Printf("  DATABASE_URL           = %s", dbURL)
-	log.Printf("  LOG_VERIFICATION_CODES = %v", h.LogVerificationCodes)
-	log.Printf("  REDIS_ADDR             = %s", redisAddr)
-	log.Printf("  RP_ID                  = %s", rpID)
-	log.Printf("  RP_ORIGIN              = %s", rpOrigin)
+	log.Printf("  ADDR        = %s", addr)
+	log.Printf("  DATABASE_URL = %s", dbURL)
+	log.Printf("  REDIS_ADDR  = %s", redisAddr)
+	log.Printf("  RP_ID       = %s", rpID)
+	log.Printf("  RP_ORIGINS  = %s", strings.Join(rpOrigins, ", "))
 	log.Println()
 
 	log.Printf("Auth server listening on %s", addr)
-	if err := http.ListenAndServe(addr, handler.CORS([]string{rpOrigin}, mux)); err != nil {
+	if err := http.ListenAndServe(addr, handler.CORS(rpOrigins, mux)); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 }

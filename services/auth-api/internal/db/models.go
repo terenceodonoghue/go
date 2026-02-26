@@ -10,19 +10,14 @@ import (
 
 type Credential struct {
 	ID                 []byte             `json:"id"`
-	UserID             pgtype.UUID        `json:"user_id"`
+	UserHandle         []byte             `json:"user_handle"`
+	DisplayName        pgtype.Text        `json:"display_name"`
 	PublicKey          []byte             `json:"public_key"`
 	Transport          []string           `json:"transport"`
 	SignCount          int64              `json:"sign_count"`
 	FlagBackupEligible bool               `json:"flag_backup_eligible"`
 	FlagBackupState    bool               `json:"flag_backup_state"`
 	Aaguid             []byte             `json:"aaguid"`
+	LastUsedAt         pgtype.Timestamptz `json:"last_used_at"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
-}
-
-type User struct {
-	ID         pgtype.UUID        `json:"id"`
-	WebauthnID []byte             `json:"webauthn_id"`
-	Email      string             `json:"email"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }

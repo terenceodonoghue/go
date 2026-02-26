@@ -1,6 +1,6 @@
 # auth-api
 
-Passwordless authentication server using [WebAuthn/passkeys](https://webauthn.io/). Supports email verification, passkey registration, and discoverable login.
+Passwordless authentication server using [WebAuthn/passkeys](https://webauthn.io/). Users register and sign in using discoverable credentials — no passwords, no email verification.
 
 ## Prerequisites
 
@@ -21,8 +21,7 @@ Create a `.env` file:
 DATABASE_URL=postgres://auth:auth@localhost:5432/auth?sslmode=disable
 REDIS_ADDR=localhost:6379
 RP_ID=localhost
-RP_ORIGIN=http://localhost:3000
-LOG_VERIFICATION_CODES=true
+RP_ORIGINS=http://localhost:3000
 ```
 
 Run the server:
@@ -30,14 +29,6 @@ Run the server:
 ```sh
 set -a && source .env && set +a && go run .
 ```
-
-A test frontend is available at `web/index.html`. Serve it on the port matching `RP_ORIGIN`:
-
-```sh
-python3 -m http.server 3000 -d web
-```
-
-Set `LOG_VERIFICATION_CODES=true` in your `.env` to log verification codes to the server console for testing. Replace with a real email provider in production.
 
 ## Configuration
 
@@ -48,18 +39,18 @@ All environment variables are required unless noted otherwise.
 | `DATABASE_URL` | PostgreSQL connection string | `postgres://user:pass@host:5432/db` |
 | `REDIS_ADDR` | Redis address | `host:6379` |
 | `RP_ID` | WebAuthn relying party ID (your domain) | `example.com` |
-| `RP_ORIGIN` | Origin the browser sends during WebAuthn ceremonies | `https://example.com` |
+| `RP_ORIGINS` | Comma-separated origins the browser sends during WebAuthn ceremonies | `https://example.com,https://auth.example.com` |
 | `ADDR` | Listen address (optional, defaults to `:8081`) | `:8080` |
-| `LOG_VERIFICATION_CODES` | Log codes to console (optional, defaults to `false`) | `true` |
 
 ## API
 
-### Registration (3 steps)
+### Registration (2 steps)
+
+Registration requires the `X-Network-Context: local` header (injected by the reverse proxy when the client is on the local network).
 
 | Method | Path | Description |
 |---|---|---|
-| POST | `/api/register/begin` | Send `{"email": "..."}` to receive a verification code |
-| POST | `/api/register/verify` | Send `{"email": "...", "code": "..."}` to verify and receive WebAuthn creation options |
+| POST | `/api/register/begin` | Send `{"name": "..."}` to receive WebAuthn creation options |
 | POST | `/api/register/finish` | Complete the WebAuthn ceremony with the authenticator response |
 
 ### Login (2 steps)
@@ -79,7 +70,13 @@ Successful registration and login set an `auth_session` cookie with a 24-hour sl
 |---|---|---|
 | GET | `/api/verify` | Validate the session cookie |
 
-Returns `200` with `Remote-User` and `Remote-Email` headers if the session is valid. Returns `401` if the session is invalid. Designed for use with Caddy's `forward_auth` directive.
+Returns `200` if the session is valid, `401` otherwise. Designed for use with Caddy's `forward_auth` directive.
+
+### Network context
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/network` | Returns `{"network": "local"}` or `{"network": "public"}` based on the `X-Network-Context` header |
 
 ### Logout
 
@@ -104,7 +101,7 @@ docker run -p 8081:8081 \
   -e DATABASE_URL=postgres://user:pass@host:5432/db \
   -e REDIS_ADDR=host:6379 \
   -e RP_ID=example.com \
-  -e RP_ORIGIN=https://example.com \
+  -e RP_ORIGINS=https://example.com \
   auth
 ```
 

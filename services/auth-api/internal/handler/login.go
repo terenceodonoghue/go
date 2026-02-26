@@ -58,25 +58,15 @@ func (h *Handler) FinishLogin(w http.ResponseWriter, r *http.Request) {
 
 	h.Store.DeleteWebAuthnSession(r.Context(), cookie.Value)
 
-	var authenticatedUser db.User
+	var authenticatedCred db.Credential
 
 	discoverableUserHandler := func(rawID, userHandle []byte) (webauthn.User, error) {
-		dbUser, err := h.Queries.GetUserByWebAuthnID(r.Context(), userHandle)
+		dbCred, err := h.Queries.GetCredential(r.Context(), userHandle)
 		if err != nil {
 			return nil, err
 		}
-
-		authenticatedUser = dbUser
-
-		creds, err := h.Queries.GetCredentialsByUserID(r.Context(), dbUser.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		return &model.User{
-			DB:          dbUser,
-			Credentials: model.ToWebAuthnCredentials(creds),
-		}, nil
+		authenticatedCred = dbCred
+		return &model.Credential{DB: dbCred}, nil
 	}
 
 	credential, err := h.WebAuthn.FinishDiscoverableLogin(discoverableUserHandler, *session, r)
@@ -85,7 +75,7 @@ func (h *Handler) FinishLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.Queries.UpdateCredentialAfterLogin(r.Context(), db.UpdateCredentialAfterLoginParams{
+	if err := h.Queries.UpdateCredential(r.Context(), db.UpdateCredentialParams{
 		ID:              credential.ID,
 		SignCount:       int64(credential.Authenticator.SignCount),
 		FlagBackupState: credential.Flags.BackupState,
@@ -94,7 +84,7 @@ func (h *Handler) FinishLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.createAuthSession(w, r, authenticatedUser); err != nil {
+	if err := h.createAuthSession(w, r, authenticatedCred.DisplayName.String); err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
