@@ -1,4 +1,4 @@
-# solar-svc
+# fron-svc
 
 Background service that polls a Fronius solar inverter every 5 seconds and writes metrics to InfluxDB 2.x.
 

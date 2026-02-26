@@ -1,15 +1,15 @@
-name: Solar Service
+name: Fronius Service
 
 on:
   push:
     branches: [main]
     paths:
-      - services/solar-svc/**/*.go
-      - services/solar-svc/Dockerfile
+      - services/fron-svc/**/*.go
+      - services/fron-svc/Dockerfile
       - pkg/**/*.go
       - go.mod
       - go.sum
-      - .github/workflows/solar-svc.yml
+      - .github/workflows/fron-svc.yml
 
 jobs:
   publish:
@@ -33,7 +33,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: services/solar-svc/Dockerfile
+          file: services/fron-svc/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/terenceodonoghue/solar-svc:latest
+          tags: ghcr.io/terenceodonoghue/fron-svc:latest

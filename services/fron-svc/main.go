@@ -13,7 +13,7 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"go.local/pkg/env"
-	"go.local/services/solar-svc/internal/fronius"
+	"go.local/services/fron-svc/internal/fronius"
 )
 
 const (
