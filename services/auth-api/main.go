@@ -68,9 +68,11 @@ func main() {
 	mux.HandleFunc("POST /api/register/finish", h.FinishRegistration)
 	mux.HandleFunc("POST /api/login/begin", h.BeginLogin)
 	mux.HandleFunc("POST /api/login/finish", h.FinishLogin)
-	mux.HandleFunc("GET /api/verify", h.VerifySession)
-	mux.HandleFunc("GET /api/network", h.GetNetworkContext)
 	mux.HandleFunc("POST /api/logout", h.Logout)
+	mux.HandleFunc("GET /api/tokens", h.RequireSession(h.ListTokens))
+	mux.HandleFunc("POST /api/tokens", h.RequireSession(h.CreateToken))
+	mux.HandleFunc("DELETE /api/tokens/{id}", h.RequireSession(h.DeleteToken))
+	mux.HandleFunc("POST /api/introspect", h.Introspect)
 
 	addr := ":8081"
 	if v := os.Getenv("ADDR"); v != "" {

@@ -11,3 +11,11 @@ CREATE TABLE IF NOT EXISTS credentials (
     last_used_at         TIMESTAMPTZ,                                -- updated on every successful login
     created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS api_tokens (
+    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name         TEXT NOT NULL,
+    token        TEXT UNIQUE NOT NULL,
+    last_used_at TIMESTAMPTZ,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);

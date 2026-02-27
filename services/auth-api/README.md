@@ -46,8 +46,6 @@ All environment variables are required unless noted otherwise.
 
 ### Registration (2 steps)
 
-Registration requires the `X-Network-Context: local` header (injected by the reverse proxy when the client is on the local network).
-
 | Method | Path | Description |
 |---|---|---|
 | POST | `/api/register/begin` | Send `{"name": "..."}` to receive WebAuthn creation options |
@@ -62,21 +60,7 @@ Registration requires the `X-Network-Context: local` header (injected by the rev
 
 ### Session
 
-Successful registration and login set an `auth_session` cookie with a 24-hour sliding TTL. The session is stored in Redis and refreshed on each verification.
-
-### Verify
-
-| Method | Path | Description |
-|---|---|---|
-| GET | `/api/verify` | Validate the session cookie |
-
-Returns `200` if the session is valid, `401` otherwise. Designed for use with Caddy's `forward_auth` directive.
-
-### Network context
-
-| Method | Path | Description |
-|---|---|---|
-| GET | `/api/network` | Returns `{"network": "local"}` or `{"network": "public"}` based on the `X-Network-Context` header |
+Successful registration and login set an `auth_session` cookie with a 15-minute sliding TTL. The session is stored in Redis and refreshed on each access.
 
 ### Logout
 
@@ -85,6 +69,24 @@ Returns `200` if the session is valid, `401` otherwise. Designed for use with Ca
 | POST | `/api/logout` | Delete the session and clear the cookie |
 
 Returns `204 No Content`.
+
+### API tokens
+
+All token endpoints require a valid passkey session.
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/tokens` | List all API tokens |
+| POST | `/api/tokens` | Create a token — send `{"name": "..."}` |
+| DELETE | `/api/tokens/{id}` | Delete a token by UUID |
+
+### Introspect
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/api/introspect` | Validate a session cookie or Bearer token |
+
+Returns `200` if valid, `401` otherwise. Designed for use with Caddy's `forward_auth` directive.
 
 ## Docker
 

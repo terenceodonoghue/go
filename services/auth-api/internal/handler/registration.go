@@ -22,13 +22,7 @@ type Handler struct {
 }
 
 // BeginPasskeyRegistration starts the WebAuthn registration ceremony directly.
-// Only accessible when X-Network-Context: local is present.
 func (h *Handler) BeginPasskeyRegistration(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("X-Network-Context") != "local" {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-
 	var req struct {
 		Name string `json:"name"`
 	}

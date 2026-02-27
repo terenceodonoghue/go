@@ -83,7 +83,7 @@ func (s *RedisStore) DeleteRegistrationSession(ctx context.Context, sessionID st
 
 /*
 Auth sessions persist user identity after a successful registration or login.
-Sessions have a 24-hour sliding TTL that refreshes on each access.
+Sessions have a 15-minute sliding TTL that refreshes on each access.
 */
 
 type AuthSession struct {
@@ -95,7 +95,7 @@ func (s *RedisStore) SaveAuthSession(ctx context.Context, token string, session 
 	if err != nil {
 		return err
 	}
-	return s.client.Set(ctx, authSessionKey(token), b, 24*time.Hour).Err()
+	return s.client.Set(ctx, authSessionKey(token), b, 15*time.Minute).Err()
 }
 
 func (s *RedisStore) GetAuthSession(ctx context.Context, token string) (*AuthSession, error) {
@@ -104,7 +104,7 @@ func (s *RedisStore) GetAuthSession(ctx context.Context, token string) (*AuthSes
 	if err != nil {
 		return nil, err
 	}
-	s.client.Expire(ctx, key, 24*time.Hour)
+	s.client.Expire(ctx, key, 15*time.Minute)
 	var session AuthSession
 	if err := json.Unmarshal(b, &session); err != nil {
 		return nil, err

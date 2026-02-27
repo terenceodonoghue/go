@@ -8,6 +8,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type ApiToken struct {
+	ID         pgtype.UUID        `json:"id"`
+	Name       string             `json:"name"`
+	Token      string             `json:"token"`
+	LastUsedAt pgtype.Timestamptz `json:"last_used_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
 type Credential struct {
 	ID                 []byte             `json:"id"`
 	UserHandle         []byte             `json:"user_handle"`
