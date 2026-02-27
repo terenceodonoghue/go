@@ -4,6 +4,9 @@ SELECT * FROM api_tokens ORDER BY created_at;
 -- name: CreateAPIToken :one
 INSERT INTO api_tokens (name, token) VALUES ($1, $2) RETURNING *;
 
+-- name: UpdateAPIToken :one
+UPDATE api_tokens SET name = $2 WHERE id = $1 RETURNING *;
+
 -- name: DeleteAPIToken :exec
 DELETE FROM api_tokens WHERE id = $1;
 

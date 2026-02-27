@@ -69,6 +69,41 @@ func (h *Handler) CreateToken(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(apiToken)
 }
 
+// UpdateToken updates an API token's name.
+func (h *Handler) UpdateToken(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+
+	var id pgtype.UUID
+	if err := id.Scan(idStr); err != nil {
+		http.Error(w, "invalid token id", http.StatusBadRequest)
+		return
+	}
+
+	var req struct {
+		Name string `json:"name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	if req.Name == "" {
+		http.Error(w, "name is required", http.StatusBadRequest)
+		return
+	}
+
+	apiToken, err := h.Queries.UpdateAPIToken(r.Context(), db.UpdateAPITokenParams{
+		ID:   id,
+		Name: req.Name,
+	})
+	if err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(apiToken)
+}
+
 // DeleteToken deletes an API token by ID.
 func (h *Handler) DeleteToken(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")

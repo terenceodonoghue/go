@@ -82,3 +82,25 @@ func (q *Queries) ListAPITokens(ctx context.Context) ([]ApiToken, error) {
 	}
 	return items, nil
 }
+
+const updateAPIToken = `-- name: UpdateAPIToken :one
+UPDATE api_tokens SET name = $2 WHERE id = $1 RETURNING id, name, token, last_used_at, created_at
+`
+
+type UpdateAPITokenParams struct {
+	ID   pgtype.UUID `json:"id"`
+	Name string      `json:"name"`
+}
+
+func (q *Queries) UpdateAPIToken(ctx context.Context, arg UpdateAPITokenParams) (ApiToken, error) {
+	row := q.db.QueryRow(ctx, updateAPIToken, arg.ID, arg.Name)
+	var i ApiToken
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Token,
+		&i.LastUsedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}

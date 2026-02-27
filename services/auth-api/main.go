@@ -71,6 +71,7 @@ func main() {
 	mux.HandleFunc("POST /api/logout", h.Logout)
 	mux.HandleFunc("GET /api/tokens", h.RequireSession(h.ListTokens))
 	mux.HandleFunc("POST /api/tokens", h.RequireSession(h.CreateToken))
+	mux.HandleFunc("PATCH /api/tokens/{id}", h.RequireSession(h.UpdateToken))
 	mux.HandleFunc("DELETE /api/tokens/{id}", h.RequireSession(h.DeleteToken))
 	mux.HandleFunc("POST /api/introspect", h.Introspect)
 
