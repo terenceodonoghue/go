@@ -6,7 +6,7 @@ Go microservices, each independently deployable as a Docker container and publis
 
 ### [auth-api](services/auth-api/)
 
-Passwordless authentication API built on WebAuthn/passkeys. Users register and sign in using a passkey (Touch ID, Face ID, or a hardware key) — no passwords stored, with sessions kept in Redis.
+Passwordless authentication API built on WebAuthn/passkeys, with API token management for authorising external service access. Users register and sign in using a passkey (Touch ID, Face ID, or a hardware key) — no passwords stored, with sessions kept in Redis.
 
 ### [fron-svc](services/fron-svc/)
 
