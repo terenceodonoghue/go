@@ -1,0 +1,6 @@
+brew "go"
+brew "gitleaks"
+brew "pre-commit"
+brew "sqlc"
+brew "trivy"
+cask "docker-desktop"

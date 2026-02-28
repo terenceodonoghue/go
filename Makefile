@@ -1,4 +1,8 @@
-.PHONY: security-scan security-scan-auth-api security-scan-fron-svc
+.PHONY: setup security-scan security-scan-auth-api security-scan-fron-svc
+
+setup:
+	brew bundle
+	pre-commit install
 
 security-scan: security-scan-auth-api security-scan-fron-svc
 
