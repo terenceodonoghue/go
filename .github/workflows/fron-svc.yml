@@ -10,9 +10,50 @@ on:
       - go.mod
       - go.sum
       - .github/workflows/fron-svc.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - services/fron-svc/**/*.go
+      - services/fron-svc/Dockerfile
+      - pkg/**/*.go
+      - go.mod
+      - go.sum
+      - .github/workflows/fron-svc.yml
 
 jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: go
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+
   publish:
+    needs: scan
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -20,17 +61,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: docker/login-action@v3
+      - name: Build image
+        run: docker build -t fron-svc:scan -f services/fron-svc/Dockerfile .
+
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: fron-svc:scan
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: docker/setup-qemu-action@v3
+      - name: Set up QEMU
+        if: github.event_name == 'push'
+        uses: docker/setup-qemu-action@v3
 
-      - uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        if: github.event_name == 'push'
+        uses: docker/setup-buildx-action@v3
 
-      - uses: docker/build-push-action@v6
+      - name: Push image
+        if: github.event_name == 'push'
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: services/fron-svc/Dockerfile

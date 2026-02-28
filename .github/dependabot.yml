@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /services/auth-api
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /services/fron-svc
+    schedule:
+      interval: weekly

@@ -1,5 +1,8 @@
 # go
 
+![Auth API](https://github.com/terenceodonoghue/go/actions/workflows/auth-api.yml/badge.svg)
+![Fronius Service](https://github.com/terenceodonoghue/go/actions/workflows/fron-svc.yml/badge.svg)
+
 Go microservices, each independently deployable as a Docker container and published to GitHub Container Registry.
 
 ## Services

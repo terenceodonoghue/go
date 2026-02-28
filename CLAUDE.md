@@ -16,6 +16,13 @@ A single Go module (`go.local`) with services in `services/*` and shared package
 - Services live in `services/`, shared packages in `pkg/`
 - Commit messages use imperative present tense (e.g., "Add feature", "Fix bug")
 
+## CI
+
+Per-service workflows — each runs security scan (Gitleaks, CodeQL), Docker build, Trivy image scan, and publish to ghcr.io on push to main. Both also trigger on shared code changes (`pkg/**`, `go.mod`).
+
+- `auth-api.yml` — path-filtered to `services/auth-api/**`
+- `fron-svc.yml` — path-filtered to `services/fron-svc/**`
+
 ## Code style
 
 Handled entirely by `gofmt` — do not manually enforce formatting rules.
