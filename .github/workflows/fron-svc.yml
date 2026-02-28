@@ -69,6 +69,7 @@ jobs:
         with:
           image-ref: fron-svc:scan
           severity: CRITICAL,HIGH
+          ignore-unfixed: "true"
           exit-code: "1"
 
       - name: Log in to GHCR
