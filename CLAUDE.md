@@ -6,6 +6,7 @@ A single Go module (`go.local`) with services in `services/*` and shared package
 
 ## Commands
 
+- First-time setup: `make setup` (installs Homebrew tools and pre-commit hooks)
 - Build a service: `go build ./services/<name>/...`
 - Run tests: `go test ./services/<name>/...`
 - Regenerate sqlc: `cd services/<name> && sqlc generate` (output goes to `internal/db/`, do not edit generated files)
